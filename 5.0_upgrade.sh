@@ -41,12 +41,15 @@ mapr-mapreduce1 mapr-mapreduce2 mapr-metrics mapr-nfs mapr-nodemanager mapr-reso
 
 for i in ${packages[@]}
 do
+	echo "Checking if $i is Installed"
 	rpm --quiet -q $i
 	if [ $? = 0 ]
 		then
 		yum update -y $i
 		echo "Upgrading $i"
-		fi
+	else
+		echo "$i Not Found... Skipping."
+	fi
 done
 
 #Re-Run configure.sh
