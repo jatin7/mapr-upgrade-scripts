@@ -79,14 +79,14 @@ done
 LOG=/tmp/wait_for_cldb.log
 MAX_WAIT=${MAX_WAIT:-600}
 STIME=5
-CMSTR_CMD="timeout -s HUP 5s /opt/mapr/bin/maprcli node cldbmaster -noheader 2> /dev/null"
+CMSTR_CMD="timeout -s HUP 5s ca 2> /dev/null"
 SWAIT=MAX_WAIT
 
+$CMSTR_CMD 2>> $LOG
 while [ $? -ne 0  -a 120 -gt 0 ]; do
 	echo "CLDB not found; will wait for $SWAIT more seconds" | tee -a $LOG
 	sleep $STIME
 	SWAIT=$[SWAIT - $STIME]
-
 	$CMSTR_CMD 2>> $LOG
 done
 
@@ -100,6 +100,7 @@ maprcli node maintenance -nodes $(hostname) -timeoutminutes 0
 maprcli notifyupgrade finish –node $(hostname)
 
 # Wait for the containers to synchronize
+length=1
 while [ $length -ne 0 ]; do
 	resync_status=$(/opt/mapr/server/mrconfig info containers resync local)
 	length=${#resync_status}
