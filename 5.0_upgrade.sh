@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Update MapR Yum Repository
+if [ -f /etc/yum.repos.d/mapr.repo ]; then
+	sed -i '0,/baseurl=.*package.mapr.com.*/{s,,baseurl=http://package.mapr.com/releases/v5.0.0/redhat,}' /etc/yum.repos.d/mapr.repo
+else
+	echo "/etc/yum.repos.d/mapr.repo not found or needs hand edit"
+	exit
+fi
+
 # Place nodes in maintenance mode
 maprcli node maintenance -nodes $(hostname) -timeoutminutes 30
 
