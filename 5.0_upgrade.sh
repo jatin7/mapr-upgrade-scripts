@@ -9,7 +9,11 @@ else
 fi
 
 # Place nodes in maintenance mode
-maprcli node maintenance -nodes $(hostname) -timeoutminutes 30
+#if [ -f /opt/mapr/roles/cldb ]; then
+#	echo "CLDB Detected"
+#else
+	maprcli node maintenance -nodes $(hostname) -timeoutminutes 30
+#fi
 
 # Notify the CLDB that the node is going to be upgraded
 maprcli notifyupgrade start -node $(hostname)
@@ -79,7 +83,7 @@ done
 LOG=/tmp/wait_for_cldb.log
 MAX_WAIT=${MAX_WAIT:-600}
 STIME=5
-CMSTR_CMD="timeout -s HUP 5s ca 2> /dev/null"
+CMSTR_CMD="timeout -s HUP 5s /opt/mapr/bin/maprcli node cldbmaster -noheader 2> /dev/null"
 SWAIT=MAX_WAIT
 
 $CMSTR_CMD 2>> $LOG
