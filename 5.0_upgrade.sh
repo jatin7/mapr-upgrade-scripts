@@ -106,6 +106,10 @@ maprcli notifyupgrade finish –node $(hostname)
 # Wait for the containers to synchronize
 length=1
 while [ $length -ne 0 ]; do
+	echo "Waiting for Containers to Resync"
 	resync_status=$(/opt/mapr/server/mrconfig info containers resync local)
 	length=${#resync_status}
+	sleep 10
 done
+
+echo "Upgrade Finished"
