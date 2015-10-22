@@ -9,11 +9,7 @@ else
 fi
 
 # Place nodes in maintenance mode
-#if [ -f /opt/mapr/roles/cldb ]; then
-#	echo "CLDB Detected"
-#else
-	maprcli node maintenance -nodes $(hostname) -timeoutminutes 30
-#fi
+maprcli node maintenance -nodes $(hostname) -timeoutminutes 30
 
 # Notify the CLDB that the node is going to be upgraded
 maprcli notifyupgrade start -node $(hostname)
@@ -56,7 +52,12 @@ do
 	fi
 done
 
-#Re-Run configure.sh
+# Install Patch
+if [ -f /opt/mapr ]; then
+    echo "Installing MapR Patch" && yum install -y /tmp/mapr-patch-5.0.0.32987.GA-34890.x86_64.rpm
+fi
+
+# Re-Run configure.sh
 /opt/mapr/server/configure.sh -R
 
 # Start Zookeeper
@@ -79,6 +80,9 @@ do
 	sleep 2
 done
 
+# Give other services time to start
+sleep 60
+
 # Verify cldb is up and running
 LOG=/tmp/wait_for_cldb.log
 MAX_WAIT=${MAX_WAIT:-600}
@@ -97,9 +101,6 @@ done
 # Take node out of maintenance mode
 maprcli node maintenance -nodes $(hostname) -timeoutminutes 0
 
-# If CLDB, Instruct CLDB About New Version
-# maprcli config save -values {mapr.targetversion:"`cat /opt/mapr/MapRBuildVersion`"}
-
 # Notify the CLDB that the node upgrade is finished
 maprcli notifyupgrade finish –node $(hostname)
 
@@ -113,3 +114,9 @@ while [ $length -ne 0 ]; do
 done
 
 echo "Upgrade Finished"
+
+# Once the last node in the cluster is upgraded, the following commands should be run from the Command Line on any cluster node to enable new features:
+# maprcli config save -values {mapr.targetversion:"`cat /opt/mapr/MapRBuildVersion`"}
+# maprcli config save -values {"mfs.feature.audit.support":"1"}
+# maprcli config save -values {mfs.feature.volume.upgrade:1}
+# maprcli config save -values {mfs.feature.rwmirror.support:1}
